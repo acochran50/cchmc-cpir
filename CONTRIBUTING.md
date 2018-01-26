@@ -17,7 +17,7 @@ Git is love, git is life (if you're designing software). Git and GitHub offer to
 ### Branches
   * It's _probably_ fine that everything exists on just one branch, because we're not adding things to a single, cohesive application. But, if you're interested, you can create a new branch of the repository to test some things out in. This means you will be copying the project's entire directory structure into a separate directory within the Git repository. Importantly, unless you **merge** the two back together, which I highly don't recommend doing here, they will not have the same contents. Files updated in one branch will not be updated in another unless they are merged together.
   
-## About Git and GitHub
+## About Git and GitHub :octocat:
 
 ### GitHub Desktop vs. Git CLI
   * If you're used to using Git or the command line in general, by all means feel free to use your favorite terminal to push & pull to/from this repository.
@@ -31,14 +31,19 @@ Git is love, git is life (if you're designing software). Git and GitHub offer to
   * You _can_ edit files online using GitHub's editing functionality, but that is **highly** discouraged unless the file is Markdown or something else that you'd actually benefit from editing in a browser.
   * If you'd like to read more about Git, [this page](https://git-scm.com/about) should have what you're looking for.
 
-### Adding something new
-  * If you're adding a new project or set of files to the repository, do so by creating a new folder with a **descriptive name**. Everyone should know what the folder is for.
-
 ## Comments, Documentation and Formatting
 
 If someone else is going to use your code in the future, **please format well and write decent comments.** Few things are worse than inheriting someone's project and having to parse through each line just to understand what the general purpose of their software is. Write **brief and descriptive** comments as often as you think would be necessary for someone else to be able to grasp your thought process **without having to ask you any questions**. Good formatting is another key to writing understandable code. Especially with MATLAB, matrix indices can often be hard to read. Be liberal with newlines and indentations if it helps improve the readability of your software.
 
+## MATLAB Style Guide
+
+[This document](./MATLAB_style.pdf) is available in the [root directory](https://github.com/acochran50/cchmc-cpir). Not a requirement, but could you imagine a world where everyone wrote MATLAB code by the same standards? Whoa.
+
+</br>
+
 ***
+
+</br>
 
 ## [GitHub Flow](https://guides.github.com/introduction/flow/)
 
