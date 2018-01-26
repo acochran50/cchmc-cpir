@@ -15,6 +15,10 @@ Contribution guidelines can be found [here](CONTRIBUTING.md).
 
 GitHub Desktop can be downloaded [here](https://desktop.github.com/).
 
+<h2>MATLAB Style Guide</h2>
+
+Interested in using a style guide for MATLAB? Heck yes you are. Find it [here](./MATLAB_style.pdf).
+
 <h2>Disclaimer</h2>
 
 The content on/in this GitHub repository in NO way represents any official views or interests of Cincinnati Children's. The files and discussions here are meant only to facilitate rapid and organized development of software in the interest of making meaningful progress in the field of pulmonary imaging technology.
