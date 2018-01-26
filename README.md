@@ -5,8 +5,6 @@ Cincinnati Children's Hospital Medical Center</br>Center for Pulmonary Imaging R
 </p>
 </h1>
 
-</br>
-
 This is the remote repository for the Center for Pulmonary Imaging Research at Cincinnati Children's Hospital Medical Center. This page is an effort to promote version-controlled development of scripts and applications designed to acquire or analyze data. In contrast to a shared-drive on the CCHMC network, this repository will take advantage of the version control funcitonality provided by Git, with the ease of access provided by GitHub.
 
 <h2>Contributing</h2>
