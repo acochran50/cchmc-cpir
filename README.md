@@ -9,4 +9,10 @@ Contact:
 &nbsp;&nbsp;&nbsp;&nbsp;Alex Cochran
 </br>&nbsp;&nbsp;&nbsp;&nbsp;Alexander.Cochran@cchmc.org
 
-<img align="center" src="./media/comb_logo.png">
+<p align="center>
+  <img src="./media/cchmc_cpir_logo.png"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/acochran50/cchmc-cpir/media/cchmc_cpir_logo.png" alt="CCHMC CPIR"/>
+</p>
