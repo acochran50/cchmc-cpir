@@ -11,7 +11,7 @@ This is the remote repository for the Center for Pulmonary Imaging Research at C
 
 Contribution guidelines can be found [here](CONTRIBUTING.md).
 
-<h2>GitHub Desktop<h2>
+<h2>GitHub Desktop</h2>
 
 GitHub Desktop can be downloaded [here](https://desktop.github.com/).
 
