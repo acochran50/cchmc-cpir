@@ -1,5 +1,6 @@
 <h1 align="center">
 Cincinnati Children's Hospital Medical Center</br>Center for Pulmonary Imaging Research
+</br>
 <p align="center">
   <img src="./media/cchmc_cpir_logo.png" alt="CCHMC CPIR"/>
 </p>
