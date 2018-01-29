@@ -1,6 +1,6 @@
 """file_compare.py
 
-Returns the differences between two input files to sys.stdout or a new file. Formatted for use as a
+Returns the differences between two input files to sys.stdout. Formatted for use as a
 standalone CLI script; not an import-ready module.
 
 Alex Cochran, 2018.
@@ -11,7 +11,6 @@ import sys
 import difflib
 
 INPUT_PATH = os.getcwd()
-OUTPUT_PATH = os.getcwd()
 
 
 def read_files(input_path=INPUT_PATH):
@@ -46,16 +45,12 @@ def check_diff(list_1, list_2):
     """Provides the diff report for two files given as the funciton input."""
 
     send_to_file = input("\nSend output to a text file? [y/N]: ")
+    print(send_to_file)
 
     diff_op = difflib.unified_diff(list_1, list_2, fromfile="File 1", tofile="File 2", lineterm="", n=0)
 
     for line in diff_op:
         print(line)
-
-    if send_to_file == "y" or "Y":
-        with open(OUTPUT_PATH + "output.txt", mode='w') as file_out:
-            for line in diff_op:
-                file_out.writelines(line)
 
 
 def main():
