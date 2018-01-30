@@ -1,8 +1,8 @@
 ~~~
 %{
   CCHMC CPIR MATLAB Script Format Guidelines
-
   Alex Cochran, 2018
+  
   These guidelines are meant to be a general set of format specs that can help improve code
   organization and readability. Use them as is reasonable; the ideas listed here aren't meant
   to be draconian.
