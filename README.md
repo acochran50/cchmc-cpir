@@ -18,7 +18,7 @@ GitHub Desktop can be downloaded [here](https://desktop.github.com/).
 
 <h2>MATLAB Style Guide</h2>
 
-Interested in using a style guide for MATLAB? Heck yes you are. Find it [here](./MATLAB_style.pdf).
+Interested in using a style guide for MATLAB? Heck yes you are. Find it [here](./matlab/formatting/MATLAB_style.pdf).
 
 <h2>Disclaimer</h2>
 
