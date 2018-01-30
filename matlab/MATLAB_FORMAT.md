@@ -5,7 +5,9 @@
   These guidelines are meant to be a general set of format specs that can help improve code
   organization and readability. Use them as is reasonable; the ideas listed here aren't meant
   to be draconian.
+  
   General rules of thumb:
+  
     1. Use good alignment with comments, matrix indices, etc.
     2. Comment as much as you can without muddying your code
     3. Variables should be written using "camel case" (myVar, myArray, myBigStruct, etc.)...
