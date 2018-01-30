@@ -4,11 +4,11 @@ This directory is for any reusable MATLAB scripts. Sets of files dedicated to sp
 
 ## Functions
 
-The function `imslice.m` could go into a folder in this directory called `imslice`. It should be accompanied with a short `README.md` that describes a basic use-case for the function.
+The function `imslice.m` could go into a folder in this directory called `imslice`. It should be accompanied with a short `README.md` that describes a basic use-case for the function. **Function names are all lowercase.**
 
 ## Projects
 
-Projects consisting of multiple files should go into their own directory. If someone wants to access the project or pull the software into a folder on their machine containing datafiles ready for analysis, they should be able to do so without fishing through several locations to find what they want. In other words, everything necessary to run your code, except possibly for datafiles, should be there.
+Projects consisting of multiple files should go into their own directory. If someone wants to access the project or pull the software into a folder on their machine containing datafiles ready for analysis, they should be able to do so without fishing through several locations to find what they want. In other words, everything necessary to run your code, except possibly for datafiles, should be there. **Script names are all uppercase.**
 
 For example, let's say you have an image processing project you're working on with 3 files:
 
