@@ -154,7 +154,6 @@ end
 % set figure position
 set(gcf, 'Position', [50 80 1420 680])
 
-LOGGER.debug('main'
 
     
     
