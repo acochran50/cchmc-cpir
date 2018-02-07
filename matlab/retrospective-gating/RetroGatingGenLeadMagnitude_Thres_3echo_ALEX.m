@@ -17,8 +17,6 @@ LOGGER.setCommandWindowLevel(LOGGER.WARN);
 
 %% constants
 
-SCRIPT_ID = mfilename('fullpath');
-PATH_NAME = char(pwd);
 NUM_PROJ = 29556;
 NUM_CUT_PROJ = 0;                                       % cut leading projections
 NUM_PROJ_REAL = NUM_PROJ - NUM_CUT_PROJ;
@@ -27,10 +25,43 @@ NUM_SEP = 180;
 SEPARATION = round(NUM_PROJ_REAL / NUM_SEP);
 THRESH_PCT_EXP = 0.27;
 THRESH_PCT_INSP = 0.15;
-ECHO_FID_ARR = {'0800', '2000', '4000'};
 
 
-%% open file and extract k-space information
+%% path information
+
+SCRIPT_ID = mfilename('fullpath');
+CURR_PATH_NAME = char(pwd);
+ECHO_FID_ARR = {'0800', '2000', '4000'};                % should be dynamically assigned
+
+
+%% define data path
+
+% only prompts for path definition if a data path does not already exist in the workspace
+if ~exist('DATA_FILES', 'var')
+    [DATA_FILES, DATA_PATH] = uigetfile({'*.raw', 'RAW files (*.raw)'}, ...
+        'Choose data', 'MultiSelect', 'on');
+end
+
+
+%% define output path
+
+% define a unique test name (if one doesn't already exist in the workspace)
+if ~exist('TEST_NAME', 'var')
+    while ~exist('TEST_NAME', 'var')
+        TEST_NAME = input('Enter a test name: ', 's');
+        if isempty(TEST_NAME)
+            clear TEST_NAME;
+        end
+    end
+end
+
+% only prompts for folder creation if it doesn't already exist
+if ~exist(strcat('.\output\', TEST_NAME), 'dir')
+    mkdir(strcat('.\output\', TEST_NAME));
+end
+
+
+%% open file and extract k-space information --> NEEDS TO BE FOR ALL 3
 
 fileID = fopen(fullfile(PATH_NAME, 'fid'));
 kData = fread(fileID, [2, inf], 'int32');
@@ -46,7 +77,7 @@ kData3Echo = kData;                                     % why assign again here.
 clear kData;                                            % and then clear here?
 
 
-%% ???
+%% retrospective gating subroutine
 
 for echoIndex = 1:3
     tempMag = kData3Echo(:, echoIndex:3:NUM_PROJ * 3 - 3 + echoIndex);
