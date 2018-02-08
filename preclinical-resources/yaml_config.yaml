@@ -1,0 +1,21 @@
+--- # CPIR
+
+test_type:    benchtop
+date:         2018-02-07
+operator:
+    first_name:    Alex
+    last_name:     Cochran
+
+animal:
+    IACUC:        xxxxxxx
+    weight:       xxx g
+    dob:          xxxx-xx-xx
+    down_time:    xx:xx
+    up_time:      xx:xx
+    death:        xx:xx
+
+comments: >
+    Testing benchtop ventilation
+    with inclusion of isoflurane
+    flow system. 
+...
