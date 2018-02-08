@@ -31,19 +31,37 @@ THRESH_PCT_INSP = 0.15;
 
 SCRIPT_ID = mfilename('fullpath');
 CURR_PATH_NAME = char(pwd);
-ECHO_FID_ARR = {'0800', '2000', '4000'};                % should be dynamically assigned
 
 
 %% define data path
 
+% DATA_FILES should be a cell array of the data files being gated
+% 1 to 3 data files should be selected, in accordance with the 3 possible echo times
+% number of data files should be equal to the number of specified echo times
+
 % only prompts for path definition if a data path does not already exist in the workspace
 if ~exist('DATA_FILES', 'var')
-    [DATA_FILES, DATA_PATH] = uigetfile({'*.raw', 'RAW files (*.raw)'}, ...
-        'Choose data', 'MultiSelect', 'on');
+    while ~exist('DATA_FILES', 'var')
+        [DATA_FILES, DATA_PATH] = uigetfile({'*.raw', 'RAW files (*.raw)'}, ...
+            'Choose data', 'MultiSelect', 'on');
+        if DATA_FILES == 0
+            QUIT = questdlg('No files selected. Quit or continue?', 'No files selected', ...
+                'Continue', 'Quit', 'Continue');
+            switch QUIT
+                case 'Quit'
+                    return
+                case 'Continue'
+                    clear DATA_FILES;
+            end
+        end
+    end
 end
 
 
 %% define output path
+
+% TEST_NAME will be the unique name of the current test
+% .\output\TEST_NAME will contain any output files
 
 % define a unique test name (if one doesn't already exist in the workspace)
 if ~exist('TEST_NAME', 'var')
@@ -58,6 +76,60 @@ end
 % only prompts for folder creation if it doesn't already exist
 if ~exist(strcat('.\output\', TEST_NAME), 'dir')
     mkdir(strcat('.\output\', TEST_NAME));
+end
+
+
+%% echo time specification
+
+% designate the echo times of the images being gated
+% units: microseconds
+% example: 'Enter echo time 1 [us]: 080' --> echo time 1 is now 80 microseconds or 0.08 ms
+
+if ~exist('ECHO_TIMES', 'var')
+    while ~exist('ECHO_TIMES', 'var')
+        ECHO_TIMES = inputdlg({'Echo time 1', 'Echo time 2', 'Echo time 3'});
+        ECHO_TIMES = ECHO_TIMES(~cellfun('isempty', ECHO_TIMES));
+        if isempty(ECHO_TIMES)
+            clear ECHO_TIMES
+        elseif length(ECHO_TIMES) ~= length(DATA_FILES)
+            
+        end
+    end
+end
+
+
+%% compare size of echo time and filename arrays
+
+% cell arrays must be the same length to proceed
+if length(ECHO_TIMES) ~= length(DATA_FILES)
+    % throw error
+elseif
+    % combine into new, properly ordered cell array
+end
+
+
+%% confirm program configuration
+
+% configuration layout
+
+
+% only prompts if the filenames have not already been confirmed
+if ~exist('CONFIRM', 'var')
+    while ~exist('CONFIRM', 'var')
+        CONFIRM = questdlg('Proceed with gating?', 'Confirm configuration?', 'Yes', 'No', 'Yes');
+        if isempty(CONFIRM)
+            clear CONFIRM;
+        end
+    end
+    
+    % decide whether to proceed
+    switch CONFIRM
+        case 'Yes'
+            disp('CONFIGURATION SUCCESSFUL; PROCEEDING');
+        case 'No'
+            disp('CONFIGURATION HALTED; ABORTING');
+            return % exit script
+    end
 end
 
 
