@@ -7,14 +7,6 @@
 %}
 
 
-%% set up logging interface
-
-% uses class defined in log4m.m
-LOGGER = log4m.getLogger('logfile.log');
-LOGGER.setLogLevel(LOGGER.DEBUG);
-LOGGER.setCommandWindowLevel(LOGGER.WARN);
-
-
 %% constants
 
 NUM_PROJ = 29556;
@@ -41,17 +33,16 @@ CURR_PATH_NAME = char(pwd);
 
 % only prompts for path definition if a data path does not already exist in the workspace
 if ~exist('DATA_FILES', 'var')
-    while ~exist('DATA_FILES', 'var')
-        [DATA_FILES, DATA_PATH] = uigetfile({'*.raw', 'RAW files (*.raw)'}, ...
-            'Choose data', 'MultiSelect', 'on');
-        if ~isa(DATA_FILES, 'cell') % could look for more robust methods
-            QUIT = questdlg('No files selected. Quit or continue?', 'No files selected', ...
+    while ~exist('DATA_FILE', 'var')
+        [DATA_FILE, DATA_PATH] = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID');
+        if ~isa(DATA_FILE, 'char') % could look for more robust methods
+            QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
                 'Continue', 'Quit', 'Continue');
             switch QUIT
                 case 'Quit'
                     return
                 case 'Continue'
-                    clear DATA_FILES;
+                    clear DATA_FILE;
             end
         end
     end
@@ -66,17 +57,20 @@ end
 % define a unique test name (if one doesn't already exist in the workspace)
 if ~exist('TEST_NAME', 'var')
     while ~exist('TEST_NAME', 'var')
-        TEST_NAME = input('Enter a test name: ', 's');
+        TEST_NAME = inputdlg('Test name:');
         if isempty(TEST_NAME)
             clear TEST_NAME;
         end
     end
 end
 
+% get output folder location from user input
+OUT_DIR = uigetdir;
+
 % only prompts for folder creation if it doesn't already exist
-if ~exist(strcat('.\output\', TEST_NAME), 'dir')
-    mkdir(strcat('.\output\', TEST_NAME));
-    OUT_PATH = strcat('.\output\', TEST_NAME);
+if ~exist(strcat(OUT_DIR, '\', char(TEST_NAME)), 'dir')
+    mkdir(strcat(OUT_DIR, '\', char(TEST_NAME)));
+    OUT_PATH = strcat(OUT_DIR, '\', char(TEST_NAME));
 end
 
 
@@ -92,40 +86,8 @@ if ~exist('ECHO_TIMES', 'var')
         ECHO_TIMES = ECHO_TIMES(~cellfun('isempty', ECHO_TIMES));
         if isempty(ECHO_TIMES)
             clear ECHO_TIMES
-        elseif length(ECHO_TIMES) ~= length(DATA_FILES)
-            
         end
     end
-end
-
-
-%% compare size of echo time and filename arrays
-
-% this routine vertically concatenates filenames with their corresponding echo times
-
-% filenames containing an echo time will have the echo time matched to the corresponding column in a
-% full dataset so that echo times and filenames can easily be accessed during the gating routine
-
-% accessing files: DATA_SET{1, index}
-% accessing echo times: DATA_SET{2, index}
-
-% cell arrays must be the same length to proceed
-if length(ECHO_TIMES) ~= length(DATA_FILES)
-    error('Number of echo times does not match the number of data files.'); % execution will stop
-else
-    % make sure the data file cell array is matched to the correct echo times for easier queries
-    % (file selection doesn't always order the filenames correctly)
-    
-    % initialize empty cell array
-    ECHO_TIMES_NEW_IDX = cell(1, 3);
-    
-    % rearrange echo times to the correct order of the datafiles
-    for n = 1:length(DATA_FILES)
-        pos = strfind(DATA_FILES, ECHO_TIMES{n});
-        idx = find(~cellfun('isempty', pos));
-        ECHO_TIMES_NEW_IDX{idx} = ECHO_TIMES{n};
-    end
-    DATA_SET = vertcat(DATA_FILES, ECHO_TIMES_NEW_IDX);
 end
 
 
@@ -153,24 +115,26 @@ if ~exist('CONFIRM', 'var')
     end
 end
 
+%% data read
+
+% open file and extract k-space information, set by set
+fileID = fopen(fullfile(DATA_PATH, DATA_FILE));
+kData = fread(fileID, [2, inf], 'int32');
+fclose(fileID);
+
+% separate real and complex k-space information
+kDataCmplx = complex(kData(1, :), kData(2, :));
+kDataMag = abs(kDataCmplx);
+kDataMag = reshape(kDataMag, [128, NUM_PROJ * 3]);
+kData3Echo = kData;                                     % why assign again here...
+clear kData;                                            % and then clear here?
+
 
 %% retrospective gating subroutine
 
 disp('STARTING RETROSPECTIVE GATING ROUTINE');
 
 for echoIndex = 1:3
-    
-    % open file and extract k-space information, set by set
-    fileID = fopen(fullfile(DATA_PATH, DATA_FILES{echoIndex}));
-    kData = fread(fileID, [2, inf], 'int32');
-    fclose(fileID);
-
-    % separate real and complex k-space information
-    kDataCmplx = complex(kData(1, :), kData(2, :));
-    kDataMag = abs(kDataCmplx);
-    kDataMag = reshape(kDataMag, [128, NUM_PROJ * 3]);
-    kData3Echo = kData;                                     % why assign again here...
-    clear kData;                                            % and then clear here?
     
     tempMag = kData3Echo(:, echoIndex:3:NUM_PROJ * 3 - 3 + echoIndex);
     for index = 1:NUM_PROJ
@@ -236,13 +200,14 @@ for echoIndex = 1:3
     % write expiration data to file
     kDataExp = kData(:, :, selectVectorExp);
     numProjExp = size(kDataExp, 3);
-    fileID = fopen(fullfile(PATH_NAME, strcat(['fid_expiration', ...
-        char(ECHO_FID_ARR(echoIndex))])), 'w');
+    fileID = fopen(fullfile(OUT_PATH, strcat(['fid_expiration', ...
+        char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, kDataExp, 'int32');
     fclose(fileID);
     
     % write trajectory data to file
-    fileID = fopen(fullfile(PATH_NAME, 'traj'));
+    fileID = fopen(fullfile(OUT_PATH, strcat(['traj' ...
+        char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     trajectory = reshape(fread(fileID, [3, inf], 'double'), [3 NUM_POINTS, NUM_PROJ * 3]);
     fclose(fileID);
     
@@ -253,15 +218,16 @@ for echoIndex = 1:3
     trajectoryExp = trajectory(:, :, selectVectorExp);
     
     % write expiration trajectory data to file
-    fileID = fopen(fullfile(PATH_NAME, strcat(['traj_expiration', ...
-        char(ECHO_FID_ARR(echoIndex))])), 'w');
+    fileID = fopen(fullfile(OUT_PATH, strcat(['traj_expiration', ...
+        char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, trajectoryExp, 'double');
     fclose(fileID);
     
     % write inspiration data to file
     kDataInsp = kData(:, :, selectVectorInsp);
     numProjInsp = size(kDataInsp, 3);
-    fileID = fopen(fullfile(PATH_NAME, 'fid_inspiration'), 'w');
+    fileID = fopen(fullfile(OUT_PATH, strcat(['fid_inspiration', ...
+        char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, kDataInsp, 'int32');
     fclose(fileID);
     
@@ -269,15 +235,16 @@ for echoIndex = 1:3
     trajectoryInsp = trajectory(:, :, selectVectorInsp);
     
     % write inspiration trajectory data to file
-    fileID = fopen(fullfile(PATH_NAME, 'traj_inspiration'), 'w');
+    fileID = fopen(fullfile(OUT_PATH, strcat(['traj_inspiration', ...
+        char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, trajectoryInsp, 'double');
     fclose(fileID);
 end
 
 % set figure position
-set(gcf, 'Position', [50 80 1420 680])
+set(gcf, 'Position', [50 80 1420 680]);
 
-
+disp('RETROSPECTIVE GATING ROUTINE COMPLETE');
     
     
     
