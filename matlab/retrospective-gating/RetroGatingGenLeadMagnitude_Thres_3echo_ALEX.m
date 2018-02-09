@@ -44,7 +44,7 @@ if ~exist('DATA_FILES', 'var')
     while ~exist('DATA_FILES', 'var')
         [DATA_FILES, DATA_PATH] = uigetfile({'*.raw', 'RAW files (*.raw)'}, ...
             'Choose data', 'MultiSelect', 'on');
-        if DATA_FILES == 0
+        if ~isa(DATA_FILES, 'cell') % could look for more robust methods
             QUIT = questdlg('No files selected. Quit or continue?', 'No files selected', ...
                 'Continue', 'Quit', 'Continue');
             switch QUIT
@@ -76,6 +76,7 @@ end
 % only prompts for folder creation if it doesn't already exist
 if ~exist(strcat('.\output\', TEST_NAME), 'dir')
     mkdir(strcat('.\output\', TEST_NAME));
+    OUT_PATH = strcat('.\output\', TEST_NAME);
 end
 
 
@@ -87,7 +88,7 @@ end
 
 if ~exist('ECHO_TIMES', 'var')
     while ~exist('ECHO_TIMES', 'var')
-        ECHO_TIMES = inputdlg({'Echo time 1', 'Echo time 2', 'Echo time 3'});
+        ECHO_TIMES = transpose(inputdlg({'Echo time 1', 'Echo time 2', 'Echo time 3'}));
         ECHO_TIMES = ECHO_TIMES(~cellfun('isempty', ECHO_TIMES));
         if isempty(ECHO_TIMES)
             clear ECHO_TIMES
@@ -100,11 +101,31 @@ end
 
 %% compare size of echo time and filename arrays
 
+% this routine vertically concatenates filenames with their corresponding echo times
+
+% filenames containing an echo time will have the echo time matched to the corresponding column in a
+% full dataset so that echo times and filenames can easily be accessed during the gating routine
+
+% accessing files: DATA_SET{1, index}
+% accessing echo times: DATA_SET{2, index}
+
 % cell arrays must be the same length to proceed
 if length(ECHO_TIMES) ~= length(DATA_FILES)
-    % throw error
-elseif
-    % combine into new, properly ordered cell array
+    error('Number of echo times does not match the number of data files.'); % execution will stop
+else
+    % make sure the data file cell array is matched to the correct echo times for easier queries
+    % (file selection doesn't always order the filenames correctly)
+    
+    % initialize empty cell array
+    ECHO_TIMES_NEW_IDX = cell(1, 3);
+    
+    % rearrange echo times to the correct order of the datafiles
+    for n = 1:length(DATA_FILES)
+        pos = strfind(DATA_FILES, ECHO_TIMES{n});
+        idx = find(~cellfun('isempty', pos));
+        ECHO_TIMES_NEW_IDX{idx} = ECHO_TIMES{n};
+    end
+    DATA_SET = vertcat(DATA_FILES, ECHO_TIMES_NEW_IDX);
 end
 
 
@@ -133,25 +154,24 @@ if ~exist('CONFIRM', 'var')
 end
 
 
-%% open file and extract k-space information --> NEEDS TO BE FOR ALL 3
-
-fileID = fopen(fullfile(PATH_NAME, 'fid'));
-kData = fread(fileID, [2, inf], 'int32');
-fclose(fileID);
-
-
-%% separate real and complex k-space information
-
-kDataCmplx = complex(kData(1, :), kData(2, :));
-kDataMag = abs(kDataCmplx);
-kDataMag = reshape(kDataMag, [128, NUM_PROJ * 3]);
-kData3Echo = kData;                                     % why assign again here...
-clear kData;                                            % and then clear here?
-
-
 %% retrospective gating subroutine
 
+disp('STARTING RETROSPECTIVE GATING ROUTINE');
+
 for echoIndex = 1:3
+    
+    % open file and extract k-space information, set by set
+    fileID = fopen(fullfile(DATA_PATH, DATA_FILES{echoIndex}));
+    kData = fread(fileID, [2, inf], 'int32');
+    fclose(fileID);
+
+    % separate real and complex k-space information
+    kDataCmplx = complex(kData(1, :), kData(2, :));
+    kDataMag = abs(kDataCmplx);
+    kDataMag = reshape(kDataMag, [128, NUM_PROJ * 3]);
+    kData3Echo = kData;                                     % why assign again here...
+    clear kData;                                            % and then clear here?
+    
     tempMag = kData3Echo(:, echoIndex:3:NUM_PROJ * 3 - 3 + echoIndex);
     for index = 1:NUM_PROJ
         kData(:, (index - 1) * 128 + 1:index * 128) = ...

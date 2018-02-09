@@ -29,7 +29,7 @@ magnitudeAll3Echos=magnitude;
 kdataAll3Echos=kdata;
 clear kdata;
 
-fileNameStr={'0800','2000','4000'};
+fileNameStr={'0800','2000','4000'}; % ECHO_FID_ARR
 
 for echoIndex=1:3
 
