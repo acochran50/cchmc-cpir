@@ -32,18 +32,17 @@ CURR_PATH_NAME = char(pwd);
 % number of data files should be equal to the number of specified echo times
 
 % only prompts for path definition if a data path does not already exist in the workspace
-if ~exist('DATA_FILES', 'var')
-    while ~exist('DATA_FILE', 'var')
-        [DATA_FILE, DATA_PATH] = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID');
-        if ~isa(DATA_FILE, 'char') % could look for more robust methods
-            QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
-                'Continue', 'Quit', 'Continue');
-            switch QUIT
-                case 'Quit'
-                    return
-                case 'Continue'
-                    clear DATA_FILE;
-            end
+
+while ~exist('DATA_FILE', 'var')
+    [DATA_FILE, DATA_PATH] = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID');
+    if ~isa(DATA_FILE, 'char') % could look for more robust methods
+        QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+            'Continue', 'Quit', 'Continue');
+        switch QUIT
+            case 'Quit'
+                return
+            case 'Continue'
+                clear DATA_FILE;
         end
     end
 end
@@ -55,23 +54,25 @@ end
 % .\output\TEST_NAME will contain any output files
 
 % define a unique test name (if one doesn't already exist in the workspace)
-if ~exist('TEST_NAME', 'var')
-    while ~exist('TEST_NAME', 'var')
-        TEST_NAME = inputdlg('Test name:');
-        if isempty(TEST_NAME)
-            clear TEST_NAME;
-        end
+while ~exist('TEST_NAME', 'var')
+    TEST_NAME = inputdlg('Test name:');
+    if isempty(TEST_NAME)
+        clear TEST_NAME;
     end
 end
 
 % get output folder location from user input
-OUT_DIR = uigetdir;
+while ~exist('OUT_DIR', 'var')
+    OUT_DIR = uigetdir('', 'Select output directory location');
+end
 
 % only prompts for folder creation if it doesn't already exist
 if ~exist(strcat(OUT_DIR, '\', char(TEST_NAME)), 'dir')
     mkdir(strcat(OUT_DIR, '\', char(TEST_NAME)));
-    OUT_PATH = strcat(OUT_DIR, '\', char(TEST_NAME));
 end
+
+% define output path
+OUT_PATH = strcat(OUT_DIR, '\', char(TEST_NAME));
 
 
 %% echo time specification
@@ -80,12 +81,17 @@ end
 % units: microseconds
 % example: 'Enter echo time 1 [us]: 080' --> echo time 1 is now 80 microseconds or 0.08 ms
 
-if ~exist('ECHO_TIMES', 'var')
-    while ~exist('ECHO_TIMES', 'var')
-        ECHO_TIMES = transpose(inputdlg({'Echo time 1', 'Echo time 2', 'Echo time 3'}));
-        ECHO_TIMES = ECHO_TIMES(~cellfun('isempty', ECHO_TIMES));
-        if isempty(ECHO_TIMES)
-            clear ECHO_TIMES
+while ~exist('ECHO_TIMES', 'var')
+    ECHO_TIMES = transpose(inputdlg({'Echo time 1', 'Echo time 2', 'Echo time 3'}));
+    ECHO_TIMES = ECHO_TIMES(~cellfun('isempty', ECHO_TIMES));
+    if isempty(ECHO_TIMES)
+        QUIT = questdlg('No echo times specified. Quit or continue?', 'Incomplete input', ...
+        'Continue', 'Quit', 'Continue');
+        switch QUIT
+            case 'Quit'
+                return;
+            case 'Continue'
+                clear ECHO_TIMES;
         end
     end
 end
@@ -143,7 +149,7 @@ for echoIndex = 1:3
             echoIndex * 128 + (index-1) * 128 * 3);
     end
     
-    magnitudeLeading = squeeze(tempMag(20, (NUM_CUT_PROJ + 1):NUM_PROJ));
+    magnitudeLeading = squeeze(tempMag(2, NUM_CUT_PROJ + 1:NUM_PROJ)); % 2 orig. == 20
     
     selectVectorExp = zeros(1, NUM_PROJ_REAL);
     selectVectorInsp = zeros(1, NUM_PROJ_REAL);
@@ -177,8 +183,8 @@ for echoIndex = 1:3
     
     plot(magnitudeLeading, 'o', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'w', 'MarkerSize', 5);
     hold on;
-    xlabel(strcat(['FID # [TE: ', char(ECHO_FID_ARR(echoIndex)), ' [\mus]']), 'FontSize', 10, ...
-        'FontWeight', 'bold', 'Color', 'k');
+    xlabel(strcat(['FID # ', num2str(echoIndex), ' [TE: ', char(ECHO_TIMES(echoIndex)), ...
+        '\mus]']), 'FontSize', 10, 'FontWeight', 'bold', 'Color', 'k');
     ylabel('Phase [radians]', 'FontSize', 10, 'FontWeight', 'bold', 'Color', 'k');
     title('Leading phase of each spoke', 'FontSize', 15, 'FontWeight', 'bold', 'Color', 'k');
     
@@ -200,15 +206,14 @@ for echoIndex = 1:3
     % write expiration data to file
     kDataExp = kData(:, :, selectVectorExp);
     numProjExp = size(kDataExp, 3);
-    fileID = fopen(fullfile(OUT_PATH, strcat(['fid_expiration', ...
+    fileID = fopen(fullfile(OUT_PATH, strcat(['fid_expiration_', ...
         char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, kDataExp, 'int32');
     fclose(fileID);
     
-    % write trajectory data to file
-    fileID = fopen(fullfile(OUT_PATH, strcat(['traj' ...
-        char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
-    trajectory = reshape(fread(fileID, [3, inf], 'double'), [3 NUM_POINTS, NUM_PROJ * 3]);
+    % read trajectory information (maybe move outside loop?)
+    fileID = fopen(fullfile(DATA_PATH, 'traj'));                           % CHANGED DESTINATION
+    trajectory = reshape(fread(fileID, [3, inf], 'double'), [3 NUM_POINTS NUM_PROJ * 3]);
     fclose(fileID);
     
     % extract expiration trajectory data
@@ -218,7 +223,7 @@ for echoIndex = 1:3
     trajectoryExp = trajectory(:, :, selectVectorExp);
     
     % write expiration trajectory data to file
-    fileID = fopen(fullfile(OUT_PATH, strcat(['traj_expiration', ...
+    fileID = fopen(fullfile(OUT_PATH, strcat(['traj_expiration_', ...
         char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, trajectoryExp, 'double');
     fclose(fileID);
@@ -226,7 +231,7 @@ for echoIndex = 1:3
     % write inspiration data to file
     kDataInsp = kData(:, :, selectVectorInsp);
     numProjInsp = size(kDataInsp, 3);
-    fileID = fopen(fullfile(OUT_PATH, strcat(['fid_inspiration', ...
+    fileID = fopen(fullfile(OUT_PATH, strcat(['fid_inspiration_', ...
         char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, kDataInsp, 'int32');
     fclose(fileID);
@@ -235,7 +240,7 @@ for echoIndex = 1:3
     trajectoryInsp = trajectory(:, :, selectVectorInsp);
     
     % write inspiration trajectory data to file
-    fileID = fopen(fullfile(OUT_PATH, strcat(['traj_inspiration', ...
+    fileID = fopen(fullfile(OUT_PATH, strcat(['traj_inspiration_', ...
         char(ECHO_TIMES{echoIndex})])), 'w');                              % CHANGED DESTINATION
     fwrite(fileID, trajectoryInsp, 'double');
     fclose(fileID);
