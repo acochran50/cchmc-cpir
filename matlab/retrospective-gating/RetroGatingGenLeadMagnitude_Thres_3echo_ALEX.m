@@ -155,7 +155,6 @@ for echoIndex = 1:3
     selectVectorInsp = zeros(1, NUM_PROJ_REAL);
     
     subplot(3, 1, echoIndex);
-    plot(magnitudeLeading, 'o', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'w', 'MarkerSize', 5);
     
     for i = 1:NUM_SEP;
         minPeakHeight = (max(magnitudeLeading((i - 1) * SEPARATION + 1:i * SEPARATION)) + ...
@@ -190,7 +189,7 @@ for echoIndex = 1:3
     
     magnitudeExp = magnitudeLeading(selectVectorExp);
     locsExp = find(selectVectorExp);
-    plot(locsExp, magnitudeExp, 'ro');
+    %plot(locsExp, magnitudeExp, 'ro');
     
     magnitudeInsp = magnitudeLeading(selectVectorInsp);
     locsInsp = find(selectVectorInsp);
